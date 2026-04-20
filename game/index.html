@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Moma — player</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <canvas id="game" width="1280" height="720"></canvas>
+      <div
+        id="level-complete-overlay"
+        class="level-complete-overlay"
+        hidden
+        aria-hidden="true"
+        lang="ar"
+        dir="rtl"
+      >
+        <div class="level-complete-panel question-panel" role="dialog" aria-labelledby="level-complete-title">
+          <h2 id="level-complete-title" class="level-complete-title"></h2>
+          <div id="level-complete-stats" class="level-complete-stats"></div>
+          <button type="button" id="level-complete-action" class="question-continue" tabindex="-1"></button>
+        </div>
+      </div>
+      <div id="question-overlay" class="question-overlay" hidden aria-hidden="true" lang="ar" dir="rtl">
+        <div class="question-panel" role="dialog" aria-modal="true" aria-labelledby="question-text">
+          <button
+            type="button"
+            id="question-hint-book"
+            class="question-hint-book"
+            hidden
+            tabindex="-1"
+            aria-label="استخدم كتابًا لإظهار التلميح"
+          >
+            <img src="../Assets/Collectibles/Book.png" alt="" width="40" height="40" decoding="async" />
+          </button>
+          <p id="question-text" class="question-text"></p>
+          <p id="question-hint-text" class="question-hint-text" hidden></p>
+          <div id="question-options" class="question-options"></div>
+          <p id="question-feedback" class="question-feedback" hidden></p>
+          <button type="button" id="question-continue" class="question-continue" hidden tabindex="-1">متابعة</button>
+        </div>
+      </div>
+      <p class="hint">Move: arrows or A/D · Jump: Space, W, or up</p>
+    </main>
+    <script type="module" src="main.js"></script>
+  </body>
+</html>

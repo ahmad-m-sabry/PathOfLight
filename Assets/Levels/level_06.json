@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "units": "px",
+  "anchorRule": "bottom-center",
+  "levels": [
+    {
+      "id": "level_06",
+      "background": {
+        "foreground": "Assets/Levels/level_06.png",
+        "width": 1646,
+        "height": 720
+      },
+
+      "playerStart": { "x": 76, "y": 205 },
+      "parTimeSec": 120,
+
+      "platforms": [
+        {"id":"l01","x":173,"y":510,"length":458},
+        {"id":"l02","x":172,"y":409,"length":76},
+        {"id":"l03","x":968,"y":455,"length":60},
+        {"id":"l04","x":172,"y":311,"length":76},
+        {"id":"l05","x":1268,"y":305,"length":209}                                       
+      ],
+
+      "solidBlocks": [
+        {"id":"b01","x":1000,"y":0,"width":33,"height":80},
+        {"id":"b02","x":595,"y":0,"width":406,"height":35},
+        {"id":"b03","x":1034,"y":0,"width":28,"height":116},
+        {"id":"b04","x":1225,"y":0,"width":43,"height":305},
+        {"id":"b05","x":1061,"y":0,"width":164,"height":160},
+        {"id":"b06","x":373,"y":0,"width":59,"height":147},
+        {"id":"b07","x":0,"y":0,"width":373,"height":179},
+        {"id":"b08","x":432,"y":0,"width":105,"height":161},
+        {"id":"b09","x":564,"y":0,"width":31,"height":80},
+        {"id":"b10","x":536,"y":0,"width":28,"height":116},
+        {"id":"b11","x":675,"y":177,"width":249,"height":28},
+        {"id":"b12","x":925,"y":177,"width":44,"height":278},
+        {"id":"b13","x":1477,"y":282,"width":43,"height":317},
+        {"id":"b14","x":674,"y":561,"width":803,"height":39},
+        {"id":"b15","x":631,"y":488,"width":43,"height":112},
+        {"id":"b16","x":1622,"y":179,"width":24,"height":541},
+        {"id":"b17","x":1268,"y":0,"width":378,"height":179},
+        {"id":"b18","x":0,"y":179,"width":28,"height":541},
+        {"id":"b19","x":631,"y":177,"width":44,"height":207},
+        {"id":"b20","x":145,"y":289,"width":28,"height":309}                                           
+      ],
+
+      "collectibles": {
+        "beads": [
+          {"id":"b01","x":1010,"y":340, "buff":"jump"},
+          {"id":"b02","x":1310,"y":212, "buff":"jump"},
+          {"id":"b03","x":88,"y":312, "buff":"light"}                      
+        ],
+        "book": [
+          {"id":"b01","x":1569,"y":415}
+        ],
+        "paper": [
+          {"id":"p01","x":87,"y":528},
+          {"id":"p02","x":798,"y":221},
+          {"id":"p03","x":1434,"y":379}                                                     
+        ]
+      },
+
+      "exit": { "x": 505, "y": 510 }
+    }
+  ]
+}

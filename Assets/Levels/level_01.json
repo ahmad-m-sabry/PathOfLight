@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "units": "px",
+  "anchorRule": "bottom-center",
+  "levels": [
+    {
+      "id": "level_01",
+      "background": {
+        "foreground": "Assets/Levels/level_01.png",
+        "background": "Assets/Levels/level_01_bg.png",
+        "width": 1646,
+        "height": 720
+      },
+
+      "playerStart": { "x": 90, "y": 125 },
+      "parTimeSec": 120,
+
+      "platforms": [
+        {"id":"l01","x":1419,"y":404,"length":208},
+        {"id":"l02","x":1006,"y":476,"length":380},
+        {"id":"l03","x":358,"y":506,"length":23},
+        {"id":"l04","x":1340,"y":347,"length":23},
+        {"id":"l05","x":148,"y":590,"length":157},
+        {"id":"l06","x":20,"y":502,"length":68},
+        {"id":"l07","x":1147,"y":243,"length":262},
+        {"id":"l08","x":730,"y":200,"length":262}                           
+      ],
+
+      "solidBlocks": [
+        {"id":"b01","x":1404,"y":577,"width":223,"height":40},
+        {"id":"b02","x":1627,"y":123,"width":19,"height":597},
+        {"id":"b03","x":1145,"y":0,"width":501,"height":123},
+        {"id":"b04","x":20,"y":363,"width":331,"height":39},
+        {"id":"b05","x":566,"y":399,"width":177,"height":44},
+        {"id":"b06","x":1370,"y":243,"width":40,"height":161},
+        {"id":"b07","x":1071,"y":0,"width":74,"height":81},
+        {"id":"b08","x":310,"y":434,"width":41,"height":156},
+        {"id":"b09","x":0,"y":123,"width":20,"height":597},
+        {"id":"b10","x":0,"y":0,"width":538,"height":123},
+        {"id":"b11","x":627,"y":0,"width":445,"height":40},
+        {"id":"b12","x":582,"y":0,"width":44,"height":67},
+        {"id":"b13","x":538,"y":0,"width":44,"height":82}                    
+      ],
+
+      "collectibles": {
+        "beads": [
+          {"id":"b01","x":1575,"y":496, "buff":"jump"},
+          {"id":"b02","x":862,"y":210, "buff":"light"},
+          {"id":"b04","x":520,"y":520, "buff":"reveal"}
+        ],
+        "book": [
+          {"id":"b01","x":853,"y":569}
+        ],
+        "paper": [
+          {"id":"p01","x":1583,"y":646},
+          {"id":"p02","x":269,"y":497},
+          {"id":"p03","x":861,"y":48}              
+        ]
+      },
+
+      "exit": { "x": 1535, "y": 123 }
+    }
+  ]
+}

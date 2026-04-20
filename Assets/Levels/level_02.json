@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "units": "px",
+  "anchorRule": "bottom-center",
+  "levels": [
+    {
+      "id": "level_02",
+      "background": {
+        "foreground": "Assets/Levels/level_02.png",
+        "width": 1646,
+        "height": 720
+      },
+
+      "playerStart": { "x": 95, "y": 252 },
+      "parTimeSec": 120,
+
+      "platforms": [
+        {"id":"l01","x":44,"y":616,"length":593},
+        {"id":"l02","x":679,"y":527,"length":132},
+        {"id":"l03","x":1205,"y":496,"length":106},
+        {"id":"l04","x":484,"y":227,"length":72},
+        {"id":"l05","x":542,"y":324,"length":73},
+        {"id":"l06","x":231,"y":466,"length":204},
+        {"id":"l07","x":718,"y":217,"length":30},
+        {"id":"l08","x":898,"y":307,"length":30},
+        {"id":"l09","x":1351,"y":353,"length":31},
+        {"id":"l10","x":1007,"y":615,"length":191},
+        {"id":"l11","x":1442,"y":403,"length":157},
+        {"id":"l12","x":722,"y":399,"length":203}                          
+      ],
+
+      "solidBlocks": [
+        {"id":"b01","x":249,"y":0,"width":81,"height":161},
+        {"id":"b02","x":223,"y":0,"width":25,"height":187},
+        {"id":"b03","x":330,"y":0,"width":984,"height":118},
+        {"id":"b04","x":1394,"y":0,"width":27,"height":186},
+        {"id":"b05","x":1313,"y":0,"width":81,"height":160},
+        {"id":"b06","x":170,"y":0,"width":10,"height":238},
+        {"id":"b07","x":0,"y":0,"width":170,"height":251},
+        {"id":"b08","x":180,"y":0,"width":14,"height":224},
+        {"id":"b09","x":208,"y":0,"width":16,"height":200},
+        {"id":"b10","x":194,"y":0,"width":14,"height":212},
+        {"id":"b11","x":678,"y":118,"width":40,"height":281},
+        {"id":"b12","x":0,"y":251,"width":44,"height":469},
+        {"id":"b13","x":928,"y":215,"width":40,"height":184},
+        {"id":"b14","x":1496,"y":594,"width":103,"height":38},
+        {"id":"b15","x":1313,"y":160,"width":38,"height":336},
+        {"id":"b16","x":1435,"y":0,"width":24,"height":213},
+        {"id":"b17","x":1421,"y":0,"width":14,"height":198},
+        {"id":"b18","x":1459,"y":0,"width":17,"height":225},
+        {"id":"b19","x":1600,"y":250,"width":46,"height":470},
+        {"id":"b20","x":1475,"y":0,"width":171,"height":250}                              
+      ],
+
+      "collectibles": {
+        "beads": [
+          {"id":"b01","x":94,"y":632, "buff":"gravity"},
+          {"id":"b01","x":645,"y":134, "buff":"light"},
+          {"id":"b03","x":824,"y":295, "buff":"jump"}     
+        ],
+        "book": [
+          {"id":"b01","x":1269,"y":403}
+        ],
+        "paper": [
+          {"id":"p01","x":1556,"y":644},
+          {"id":"p02","x":1394,"y":214},
+          {"id":"p03","x":270,"y":480}                         
+        ]
+      },
+
+      "exit": { "x": 1515, "y": 403 }
+    }
+  ]
+}

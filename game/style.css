@@ -1,0 +1,342 @@
+@font-face {
+  font-family: "Rooyin";
+  src: url("../Assets/Fonts/alfont_com_RooyinFree-Bold.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, sans-serif;
+  background: #1a1b26;
+  color: #c0caf5;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+
+.wrap {
+  text-align: center;
+}
+
+#game {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  background: #24283b;
+  border: 2px solid #414868;
+  border-radius: 8px;
+}
+
+.hint {
+  margin: 12px 0 0;
+  font-size: 0.875rem;
+  opacity: 0.85;
+}
+
+.question-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(26, 27, 38, 0.78);
+  pointer-events: auto;
+}
+
+.question-overlay[hidden] {
+  display: none;
+}
+
+.level-complete-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(26, 27, 38, 0.82);
+  pointer-events: auto;
+}
+
+.level-complete-overlay[hidden] {
+  display: none;
+}
+
+.level-complete-title {
+  margin: 0 0 20px;
+  font-size: 1.5rem;
+  line-height: 1.35;
+  color: #9ece6a;
+  text-align: center;
+}
+
+.level-complete-stats {
+  margin: 0 0 24px;
+  font-size: 1.1rem;
+  line-height: 1.65;
+  color: #c0caf5;
+  text-align: start;
+  min-width: min(100%, 380px);
+}
+
+.level-complete-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin: 0 0 10px;
+}
+
+.level-complete-stat-left {
+  flex: 1 1 auto;
+  text-align: start;
+}
+
+.level-complete-stat-right {
+  flex: 0 0 auto;
+  text-align: end;
+  white-space: nowrap;
+  color: #9ece6a;
+  font-variant-numeric: tabular-nums;
+}
+
+.level-complete-stats-divider {
+  height: 0;
+  margin: 14px 0 16px;
+  border: 0;
+  border-top: 1px solid rgba(192, 202, 245, 0.28);
+}
+
+.level-complete-stat-line {
+  margin: 0 0 8px;
+}
+
+.level-complete-stat-line--highlight {
+  margin-top: 4px;
+  margin-bottom: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(192, 202, 245, 0.25);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #e0af68;
+}
+
+.question-panel {
+  position: relative;
+  font-family: "Rooyin", "Segoe UI", Tahoma, sans-serif;
+  direction: rtl;
+  /* Slice = source px per cell (unchanged). Border = on-screen scale (2× pixel art). */
+  --question-frame-slice: 41;
+  --question-frame-border: 44px;
+  max-width: 1000px;
+  padding: calc(var(--question-frame-border)) calc(var(--question-frame-border));
+  border-style: solid;
+  border-width: var(--question-frame-border);
+  border-color: transparent;
+  border-image-source: url("../Assets/UI%20Frame.png");
+  border-image-slice: var(--question-frame-slice) fill;
+  border-image-width: var(--question-frame-border);
+  border-image-outset: 0;
+  /* Tile edge sprites instead of stretching them */
+  border-image-repeat: repeat;
+  /* Corner art often has transparent pixels; a solid bg shows through as wrong color */
+  background: transparent;
+}
+
+.question-text {
+  margin: 0 0 32px;
+  /* Keep lines clear of the corner hint button (panel is RTL; book uses inset-inline-end). */
+  padding-inline-end: 80px;
+  font-size: 1.4rem;
+  line-height: 1.5;
+  color: #c0caf5;
+}
+
+.question-hint-book {
+  --hint-book-border: #7dd3c0;
+  position: absolute;
+  z-index: 1;
+  top: calc(var(--question-frame-border) * 0.1);
+  inset-inline-end: calc(var(--question-frame-border) * 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 4px;
+  line-height: 0;
+  min-width: 0;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 8px;
+  border: 3px solid var(--hint-book-border);
+  background: rgba(21, 32, 48, 0.92);
+  outline: none;
+}
+
+.question-hint-book img {
+  display: block;
+  width: 42px;
+  height: auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.question-hint-book:hover:not(:disabled) {
+  filter: brightness(1.12);
+  border-color: #9ee8d9;
+}
+
+.question-hint-book:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  filter: grayscale(0.35);
+}
+
+.question-hint-text {
+  margin: 0 0 24px;
+  padding: 12px 14px;
+  font-size: 1.05rem;
+  line-height: 1.45;
+  color: #e0af68;
+  background: rgba(26, 27, 38, 0.65);
+  border-inline-start: 3px solid #e0af68;
+  border-radius: 4px;
+}
+
+.question-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.question-options button,
+.question-continue {
+  --question-btn-slice: 20;
+  /* Frame thickness only; padding is separate (don’t add border size again inside). */
+  --question-btn-border: 20px;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.35;
+  color: #c0caf5;
+  cursor: pointer;
+  text-align:center;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0;
+  border-style: solid;
+  border-width: var(--question-btn-border);
+  /* Dark fill masks subpixel gaps next to border-image (transparent showed white fringe). */
+  border-color: #152030;
+  border-image-source: url("../Assets/UI%20Button.png");
+  border-image-slice: var(--question-btn-slice) fill;
+  border-image-width: var(--question-btn-border);
+  border-image-outset: 0;
+  /* One stretched segment per edge (not many tiled repeats). */
+  border-image-repeat: stretch;
+  background: transparent;
+  outline: none;
+}
+
+.question-options button::-moz-focus-inner,
+.question-continue::-moz-focus-inner {
+  border: 0;
+}
+
+.question-hint-book::-moz-focus-inner {
+  border: 0;
+}
+
+.question-options button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 1.1rem;
+  min-width: 120px;
+  /* Tight inset inside the 9-slice; border already reserves the frame. */
+  padding: 4px 8px;
+}
+
+.question-options button:hover:not(:disabled) {
+  filter: brightness(1.5);
+}
+
+.question-options button.question-option--kbd-focus:not(:disabled) {
+  filter: brightness(1.5);
+}
+
+.question-options button:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+/* MCQ & T/F: unpicked options fade after an answer */
+.question-options--mcq button:disabled:not(.is-correct):not(.is-wrong),
+.question-options--tf button:disabled:not(.is-correct):not(.is-wrong) {
+  filter: brightness(0.52);
+  opacity: 0.58;
+}
+
+.question-options--mcq button.is-correct:disabled,
+.question-options--mcq button.is-wrong:disabled,
+.question-options--tf button.is-correct:disabled,
+.question-options--tf button.is-wrong:disabled {
+  filter: none;
+  opacity: 1;
+}
+
+/* Wrong pick: show correct answer softer than the mistaken choice */
+.question-options--mcq.question-options--picked-wrong button.is-correct:disabled,
+.question-options--tf.question-options--picked-wrong button.is-correct:disabled {
+  filter: brightness(0.52);
+}
+
+.question-options button.is-correct {
+  filter: none;
+  border-image-source: url("../Assets/UI%20Button%20-%20Green.png");
+}
+
+.question-options button.is-wrong {
+  filter: none;
+  border-image-source: url("../Assets/UI%20Button%20-%20Red.png");
+}
+
+.question-feedback {
+  margin: 16px 0 0;
+  margin-top: 48px;
+  font-size: 1.1rem;
+  color: #f7768e;
+}
+
+.question-feedback.is-correct-msg {
+  color: #9ece6a;
+}
+
+.question-continue {
+  margin-top: 14px;
+  text-align: center;
+  padding: 4px 14px;
+}
+
+.question-continue:hover {
+  filter: brightness(1.3);
+}
