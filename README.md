@@ -6,6 +6,8 @@ This folder is a **minimal copy** of the game for hosting only. Regenerate it fr
 powershell -ExecutionPolicy Bypass -File scripts/sync-github-pages.ps1
 ```
 
+Re-running the script **keeps `.git`** here so your Pages repo history is not deleted; commit and push again after a sync.
+
 Then enable **GitHub Pages** on this repository (deploy from branch root, e.g. `main`).
 
 Site URL: `https://<username>.github.io/<repo>/` → root `index.html` redirects to `game/`.
