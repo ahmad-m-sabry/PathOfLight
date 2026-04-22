@@ -205,6 +205,26 @@ const LANTERN_WARM_GLOW_R_MUL = 0.9;
 const keys = new Set();
 let jumpQueued = false;
 
+/**
+ * Map a key event to `KeyboardEvent.code`-style strings. Prefer `e.key` for space
+ * and WASD so tablet / attachable keyboards that omit or misreport `code` still work.
+ */
+function canonicalKbdCode(e) {
+  const k = e.key;
+  if (k === " " || k === "Spacebar") return "Space";
+  if (k.length === 1) {
+    const lower = k.toLowerCase();
+    if (lower === "w") return "KeyW";
+    if (lower === "a") return "KeyA";
+    if (lower === "d") return "KeyD";
+  }
+  if (e.code) return e.code;
+  if (k === "ArrowLeft" || k === "ArrowRight" || k === "ArrowUp" || k === "ArrowDown") return k;
+  if (k === "Enter") return "Enter";
+  if (k === "Escape") return "Escape";
+  return "";
+}
+
 window.addEventListener("keydown", (e) => {
   if (appScreen === "title") {
     if ((e.code === "Enter" || e.code === "Space") && !e.repeat) {
@@ -335,17 +355,19 @@ window.addEventListener("keydown", (e) => {
     }
     return;
   }
-  if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Space"].includes(e.code)) {
+  const cg = canonicalKbdCode(e);
+  if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Space"].includes(cg)) {
     e.preventDefault();
   }
-  if ((e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW") && !e.repeat) {
+  if ((cg === "Space" || cg === "ArrowUp" || cg === "KeyW") && !e.repeat) {
     jumpQueued = true;
   }
-  keys.add(e.code);
+  if (cg) keys.add(cg);
 });
 
 window.addEventListener("keyup", (e) => {
-  keys.delete(e.code);
+  const cg = canonicalKbdCode(e);
+  if (cg) keys.delete(cg);
 });
 
 function syncLevelSelectButtons() {
