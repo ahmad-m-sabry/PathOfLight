@@ -3,12 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <titleدرب النور</title>
+    <title>درب النور</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <main class="wrap">
-      <canvas id="game" width="1280" height="720"></canvas>
+      <div class="game-viewport">
+        <canvas id="game" width="1280" height="720"></canvas>
+      </div>
       <div id="level-select-overlay" class="menu-overlay" hidden aria-hidden="true" lang="ar" dir="rtl">
         <div
           class="question-panel menu-dialog-panel menu-dialog-panel--wide"
@@ -117,7 +119,7 @@
         </div>
       </div>
       <p id="controls-hint" class="hint" hidden>
-        التحرك: الأسهم أو A وD — القفز: المسافة أو W أو السهم لأعلى
+        التحرك: الأسهم أو A وD — القفز: المسافة أو W أو السهم لأعلى — اللمس: حافتا الشاشة للحركة، اسحب للأعلى للقفز
       </p>
     </main>
     <script type="module" src="main.js"></script>

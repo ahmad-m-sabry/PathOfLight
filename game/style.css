@@ -26,17 +26,52 @@ body {
   -moz-user-select: none;
 }
 
+@supports (height: 100dvh) {
+  body {
+    min-height: 100dvh;
+  }
+}
+
 .wrap {
   text-align: center;
+  width: 100%;
+  max-width: 100%;
+  padding-inline: 8px;
+}
+
+/**
+ * Largest 16:9 frame that fits in the visible viewport (mobile URL bar / notches).
+ * Canvas is scaled via CSS; internal resolution stays 1280×720.
+ */
+.game-viewport {
+  --game-pad: 12px;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --avail-w: calc(100vw - var(--game-pad) * 2 - var(--safe-l) - var(--safe-r));
+  --avail-h: calc(100vh - var(--game-pad) * 2 - var(--safe-t) - var(--safe-b));
+  width: min(var(--avail-w), calc(var(--avail-h) * 16 / 9));
+  aspect-ratio: 16 / 9;
+  margin-inline: auto;
+  background: #24283b;
+  border: 2px solid #414868;
+  border-radius: 8px;
+  overflow: hidden;
+  touch-action: none;
+}
+
+@supports (height: 100dvh) {
+  .game-viewport {
+    --avail-h: calc(100dvh - var(--game-pad) * 2 - var(--safe-t) - var(--safe-b));
+  }
 }
 
 #game {
   display: block;
-  max-width: 100%;
-  height: auto;
+  width: 100%;
+  height: 100%;
   background: #24283b;
-  border: 2px solid #414868;
-  border-radius: 8px;
 }
 
 .hint {

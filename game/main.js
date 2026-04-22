@@ -157,6 +157,8 @@ const levelSelectGrid = document.getElementById("level-select-grid");
 const tutorialOverlay = document.getElementById("tutorial-overlay");
 const tutorialContinueBtn = document.getElementById("tutorial-continue");
 const controlsHintEl = document.getElementById("controls-hint");
+/** Wrapper used for touch: hold left/right edges to move, swipe up to jump. */
+const gameViewportEl = canvas.closest(".game-viewport");
 
 /** Viewport (16:9 canvas); world is wider (21:9 at same height) for horizontal scroll. */
 const VIEW_W = canvas.width;
@@ -369,6 +371,151 @@ window.addEventListener("keyup", (e) => {
   const cg = canonicalKbdCode(e);
   if (cg) keys.delete(cg);
 });
+
+/** Invisible zones: hold left/right; swipe up (anywhere) for jump. */
+const POINTER_ZONE_LEFT_FRAC = 0.42;
+const POINTER_ZONE_RIGHT_FRAC = 0.58;
+const SWIPE_UP_MIN_PX = 56;
+const SWIPE_MAX_DURATION_MS = 450;
+/** Require mostly vertical motion: |dy| >= |dx| * ratio. */
+const SWIPE_VERTICAL_DOMINANCE = 1.12;
+/** While the contact stays near this vertical band, swipe origin tracks it (walk then flick still counts as a fresh swipe). */
+const SWIPE_BASELINE_FOLLOW_PX = 12;
+
+/** @type {Map<number, { x0: number, y0: number, t0: number, zone: "left" | "right" | null, swipeJumpConsumed: boolean }>} */
+const activeTouchPointers = new Map();
+
+function updateSwipeBaseline(rec, clientX, clientY, now) {
+  if (clientY >= rec.y0 - SWIPE_BASELINE_FOLLOW_PX) {
+    rec.x0 = clientX;
+    rec.y0 = clientY;
+    rec.t0 = now;
+  }
+}
+
+function trySwipeUpJumpFromRec(rec, clientX, clientY, now) {
+  if (rec.swipeJumpConsumed) return;
+  const dt = now - rec.t0;
+  const dx = clientX - rec.x0;
+  const dy = clientY - rec.y0;
+  const upDist = -dy;
+  if (
+    upDist >= SWIPE_UP_MIN_PX &&
+    dt <= SWIPE_MAX_DURATION_MS &&
+    Math.abs(dy) >= Math.abs(dx) * SWIPE_VERTICAL_DOMINANCE
+  ) {
+    jumpQueued = true;
+    rec.swipeJumpConsumed = true;
+  }
+}
+
+/** After a swipe jump, allow another once the contact moves back to/below the stroke origin (still holding). */
+function maybeRearmSwipeJump(rec, clientY) {
+  if (rec.swipeJumpConsumed && clientY >= rec.y0 - 6) {
+    rec.swipeJumpConsumed = false;
+  }
+}
+
+function applyTouchMoveZone(zone, down) {
+  if (zone === "left") {
+    if (down) keys.add("ArrowLeft");
+    else keys.delete("ArrowLeft");
+  } else if (zone === "right") {
+    if (down) keys.add("ArrowRight");
+    else keys.delete("ArrowRight");
+  }
+}
+
+function touchZoneFromLocalX(localX, width) {
+  if (localX < width * POINTER_ZONE_LEFT_FRAC) return "left";
+  if (localX > width * POINTER_ZONE_RIGHT_FRAC) return "right";
+  return null;
+}
+
+function clearTouchPointerInput() {
+  for (const rec of activeTouchPointers.values()) {
+    applyTouchMoveZone(rec.zone, false);
+  }
+  activeTouchPointers.clear();
+}
+
+function onGamePointerDown(e) {
+  if (!gameViewportEl || e.button !== 0) return;
+  if (appScreen !== "gameplay" || isQuestionOpen || isLevelCompleteScreenOpen) return;
+  const rect = gameViewportEl.getBoundingClientRect();
+  const lx = e.clientX - rect.left;
+  const ly = e.clientY - rect.top;
+  if (lx < 0 || ly < 0 || lx > rect.width || ly > rect.height) return;
+  const zone = touchZoneFromLocalX(lx, rect.width);
+  applyTouchMoveZone(zone, true);
+  activeTouchPointers.set(e.pointerId, {
+    x0: e.clientX,
+    y0: e.clientY,
+    t0: performance.now(),
+    zone,
+    swipeJumpConsumed: false,
+  });
+  try {
+    gameViewportEl.setPointerCapture(e.pointerId);
+  } catch (_) {
+    /* ignore */
+  }
+  e.preventDefault();
+}
+
+function onGamePointerMove(e) {
+  if (!gameViewportEl) return;
+  const rec = activeTouchPointers.get(e.pointerId);
+  if (!rec) return;
+  if (appScreen !== "gameplay" || isQuestionOpen || isLevelCompleteScreenOpen) return;
+  const now = performance.now();
+  updateSwipeBaseline(rec, e.clientX, e.clientY, now);
+  maybeRearmSwipeJump(rec, e.clientY);
+  trySwipeUpJumpFromRec(rec, e.clientX, e.clientY, now);
+}
+
+function onGamePointerUp(e) {
+  if (!gameViewportEl) return;
+  const rec = activeTouchPointers.get(e.pointerId);
+  if (rec) {
+    trySwipeUpJumpFromRec(rec, e.clientX, e.clientY, performance.now());
+    applyTouchMoveZone(rec.zone, false);
+    activeTouchPointers.delete(e.pointerId);
+    try {
+      if (gameViewportEl.hasPointerCapture(e.pointerId)) {
+        gameViewportEl.releasePointerCapture(e.pointerId);
+      }
+    } catch (_) {
+      /* ignore */
+    }
+    if (appScreen === "gameplay" && !isQuestionOpen && !isLevelCompleteScreenOpen) {
+      e.preventDefault();
+    }
+  }
+}
+
+function onGamePointerCancel(e) {
+  if (!gameViewportEl) return;
+  const rec = activeTouchPointers.get(e.pointerId);
+  if (rec) {
+    applyTouchMoveZone(rec.zone, false);
+    activeTouchPointers.delete(e.pointerId);
+    try {
+      if (gameViewportEl.hasPointerCapture(e.pointerId)) {
+        gameViewportEl.releasePointerCapture(e.pointerId);
+      }
+    } catch (_) {
+      /* ignore */
+    }
+  }
+}
+
+if (gameViewportEl) {
+  gameViewportEl.addEventListener("pointerdown", onGamePointerDown, { passive: false });
+  gameViewportEl.addEventListener("pointermove", onGamePointerMove);
+  gameViewportEl.addEventListener("pointerup", onGamePointerUp, { passive: false });
+  gameViewportEl.addEventListener("pointercancel", onGamePointerCancel);
+}
 
 function syncLevelSelectButtons() {
   if (!levelSelectGrid) return;
@@ -645,6 +792,7 @@ async function loadLevelFromIndex(levelIndex) {
 
     if (isQuestionOpen) closeQuestionOverlay();
     jumpQueued = false;
+    clearTouchPointerInput();
 
     currentLevelIndex = n;
     syncLevelInUrl(n);
@@ -1555,6 +1703,7 @@ function closeQuestionOverlay() {
 }
 
 function showRandomQuestion() {
+  clearTouchPointerInput();
   if (questionsBank.length === 0) return;
   const paperOrdinal = levelPaperAnswered + 1;
   let q = getQuestionForLevelPaper(currentLevelIndex, paperOrdinal);
@@ -2084,6 +2233,7 @@ function fillLevelCompleteStats(container, snapshot, isFinal) {
 }
 
 function openLevelCompleteScreen(isFinal, snapshot) {
+  clearTouchPointerInput();
   levelTimerFrozenElapsedSec = snapshot.elapsedSec;
   isLevelCompleteScreenOpen = true;
   levelCompleteIsFinal = isFinal;
@@ -2102,6 +2252,7 @@ function openLevelCompleteScreen(isFinal, snapshot) {
 }
 
 function returnToTitleFromFinalWin() {
+  clearTouchPointerInput();
   score = 0;
   booksHeld = 0;
   questionsCollectedTotal = 0;
