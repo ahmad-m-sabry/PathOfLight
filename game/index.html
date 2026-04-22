@@ -1,14 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Moma — player</title>
+    <titleدرب النور</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <main class="wrap">
       <canvas id="game" width="1280" height="720"></canvas>
+      <div id="level-select-overlay" class="menu-overlay" hidden aria-hidden="true" lang="ar" dir="rtl">
+        <div
+          class="question-panel menu-dialog-panel menu-dialog-panel--wide"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="level-select-title"
+        >
+          <div class="menu-dialog-body menu-dialog-body--level-select">
+            <h2 style="margin-top: -40px; margin-bottom: 60px;" id="level-select-title" class="menu-dialog-title menu-dialog-title--top">اختر المستوى</h2>
+            <div id="level-select-grid" class="level-select-grid">
+              <button type="button" class="level-select-btn" data-level="1">1</button>
+              <button type="button" class="level-select-btn" data-level="2">2</button>
+              <button type="button" class="level-select-btn" data-level="3">3</button>
+              <button type="button" class="level-select-btn" data-level="4">4</button>
+              <button type="button" class="level-select-btn" data-level="5">5</button>
+              <button type="button" class="level-select-btn" data-level="6">6</button>
+            </div>
+            <p style="margin-top: 100px; margin-bottom: -60px;" class="menu-dialog-hint menu-dialog-hint--footer">اضغط  - Esc -  للعودة إلى شاشة العنوان</p>
+          </div>
+        </div>
+      </div>
+      <div id="tutorial-overlay" class="menu-overlay" hidden aria-hidden="true" lang="ar" dir="rtl">
+        <div
+          class="question-panel menu-dialog-panel menu-dialog-panel--tutorial"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="tutorial-title"
+        >
+          <div class="menu-dialog-body menu-dialog-body--tutorial">
+            <h2 style="margin-bottom: 60px; margin-top: -40px;" id="tutorial-title" class="menu-dialog-title menu-dialog-title--top">كيف تلعب</h2>
+            <ul class="tutorial-list">
+              <li>أكمل المستوى بالإجابة عن الأسئلة والخروج من الباب.</li>
+              <li class="tutorial-list-item tutorial-list-item--icon">
+                <img
+                  class="tutorial-icon"
+                  src="../Assets/Collectibles/Paper.png"
+                  alt=""
+                  width="36"
+                  height="36"
+                  decoding="async"
+                />
+                <span>اجمع الأوراق لفتح الأسئلة والإجابة عنها.</span>
+              </li>
+              <li class="tutorial-list-item tutorial-list-item--icon">
+                <img
+                  class="tutorial-icon"
+                  src="../Assets/Collectibles/Book.png"
+                  alt=""
+                  width="36"
+                  height="36"
+                  decoding="async"
+                />
+                <span>اجمع الكتب للحصول على تلميح عند الإجابة.</span>
+              </li>
+              <li class="tutorial-list-item tutorial-list-item--icon">
+                <img
+                  class="tutorial-icon"
+                  src="../Assets/Collectibles/Beads.png"
+                  alt=""
+                  width="36"
+                  height="36"
+                  decoding="async"
+                />
+                <span>اجمع السبح للحصول على قدرات مختلفة.</span>
+              </li>
+              <li>أنهِ المستوى بسرعة للحصول على نقاط إضافية.</li>
+            </ul>
+            <button type="button" id="tutorial-continue" class="question-continue menu-primary-btn">
+              ابدأ المستوى
+            </button>
+            <p style="margin-top: 40px; margin-bottom: -60px;" class="menu-dialog-hint menu-dialog-hint--footer">اضغط  - Esc -  لاختيار مستوى آخر</p>
+          </div>
+        </div>
+      </div>
       <div
         id="level-complete-overlay"
         class="level-complete-overlay"
@@ -42,7 +116,9 @@
           <button type="button" id="question-continue" class="question-continue" hidden tabindex="-1">متابعة</button>
         </div>
       </div>
-      <p class="hint">Move: arrows or A/D · Jump: Space, W, or up</p>
+      <p id="controls-hint" class="hint" hidden>
+        التحرك: الأسهم أو A وD — القفز: المسافة أو W أو السهم لأعلى
+      </p>
     </main>
     <script type="module" src="main.js"></script>
   </body>

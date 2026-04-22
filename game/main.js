@@ -38,6 +38,8 @@ const EXIT_CLOSED_URL = new URL("../Assets/Exit%20-%20Closed.png", import.meta.u
 const EXIT_OPEN_URL = new URL("../Assets/Exit%20-%20Open.png", import.meta.url).href;
 const EXTERIOR_URL = new URL("../Assets/Exterior.png", import.meta.url).href;
 const QUESTIONS_URL = new URL("../Assets/questions.json", import.meta.url).href;
+const TITLE_SCREEN_URL = new URL("../Assets/Title%20Screen.png", import.meta.url).href;
+const START_TEXT_URL = new URL("../Assets/start%20text.png", import.meta.url).href;
 
 /** 1-based index matching `Assets/Levels/level_NN.json`. */
 let currentLevelIndex = 1;
@@ -125,14 +127,14 @@ const SCORE_HUD_FONT_STAT_PX = Math.round(SCORE_HUD_FONT_LEVEL_PX * 0.8);
 const SCORE_HUD_FONT_LEVEL = `600 ${SCORE_HUD_FONT_LEVEL_PX}px "Rooyin", system-ui, sans-serif`;
 const SCORE_HUD_FONT_STAT = `600 ${SCORE_HUD_FONT_STAT_PX}px "Rooyin", system-ui, sans-serif`;
 /** Bottom-center: elapsed time this level (wall clock; resets each `initializeLevel`). */
-const LEVEL_TIMER_PAD_Y = 18;
+const LEVEL_TIMER_PAD_Y = 18; 
 const LEVEL_TIMER_FONT = `600 16px "Rooyin", system-ui, sans-serif`;
 const SCORE_POINTS_PER_CORRECT = 100;
 /** Default par time (seconds) when level JSON omits `parTimeSec`. */
 const DEFAULT_LEVEL_PAR_TIME_SEC = 120;
 /** Full time bonus if finish time ≤ par; each second over par costs this many points until 0. */
-const TIME_BONUS_MAX_POINTS = 150;
-const TIME_BONUS_LOSS_PER_SEC_OVER_PAR = 2;
+const TIME_BONUS_MAX_POINTS = 50;
+const TIME_BONUS_LOSS_PER_SEC_OVER_PAR = 1;
 /** HUD row pulse: duration (s) and peak scale = 1 + this. */
 const HUD_PULSE_DURATION_SEC = 0.38;
 const HUD_PULSE_PEAK_EXTRA = 0.3;
@@ -150,6 +152,11 @@ const levelCompleteOverlay = document.getElementById("level-complete-overlay");
 const levelCompleteTitleEl = document.getElementById("level-complete-title");
 const levelCompleteStatsEl = document.getElementById("level-complete-stats");
 const levelCompleteActionBtn = document.getElementById("level-complete-action");
+const levelSelectOverlay = document.getElementById("level-select-overlay");
+const levelSelectGrid = document.getElementById("level-select-grid");
+const tutorialOverlay = document.getElementById("tutorial-overlay");
+const tutorialContinueBtn = document.getElementById("tutorial-continue");
+const controlsHintEl = document.getElementById("controls-hint");
 
 /** Viewport (16:9 canvas); world is wider (21:9 at same height) for horizontal scroll. */
 const VIEW_W = canvas.width;
@@ -199,6 +206,59 @@ const keys = new Set();
 let jumpQueued = false;
 
 window.addEventListener("keydown", (e) => {
+  if (appScreen === "title") {
+    if ((e.code === "Enter" || e.code === "Space") && !e.repeat) {
+      e.preventDefault();
+      openLevelSelectFromTitle();
+      return;
+    }
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Space"].includes(e.code)) {
+      e.preventDefault();
+    }
+    return;
+  }
+  if (appScreen === "level_select") {
+    if (e.code === "Escape") {
+      e.preventDefault();
+      closeLevelSelectToTitle();
+      return;
+    }
+    const digitToLevel = {
+      Digit1: 1,
+      Digit2: 2,
+      Digit3: 3,
+      Digit4: 4,
+      Digit5: 5,
+      Digit6: 6,
+      Numpad1: 1,
+      Numpad2: 2,
+      Numpad3: 3,
+      Numpad4: 4,
+      Numpad5: 5,
+      Numpad6: 6,
+    };
+    const picked = digitToLevel[e.code];
+    if (picked != null) {
+      e.preventDefault();
+      const btn = levelSelectGrid?.querySelector(`[data-level="${picked}"]`);
+      if (btn && !btn.disabled) btn.click();
+      return;
+    }
+    return;
+  }
+  if (appScreen === "tutorial") {
+    if (e.code === "Escape") {
+      e.preventDefault();
+      backFromTutorialToLevelSelect();
+      return;
+    }
+    if ((e.code === "Enter" || e.code === "Space") && !e.repeat) {
+      e.preventDefault();
+      tutorialContinueBtn?.click();
+      return;
+    }
+    return;
+  }
   if (isLevelCompleteScreenOpen) {
     if (e.code === "Enter" || e.code === "Space") {
       e.preventDefault();
@@ -226,7 +286,8 @@ window.addEventListener("keydown", (e) => {
       const isMcq = questionOptionsEl.classList.contains("question-options--mcq");
       /** RTL grid: next DOM index is drawn to the *left*; swap so arrows match screen east/west. */
       const rtlOptions = questionOverlay.getAttribute("dir") === "rtl";
-      if (e.code === "Enter" || e.code === "Space") {
+      // Space is jump in-game; if a paper is collected while Space is held/repeating, it must not pick an answer.
+      if (e.code === "Enter") {
         e.preventDefault();
         const b = optionBtns[questionKbdFocusIndex];
         if (b) b.click();
@@ -287,6 +348,112 @@ window.addEventListener("keyup", (e) => {
   keys.delete(e.code);
 });
 
+function syncLevelSelectButtons() {
+  if (!levelSelectGrid) return;
+  for (const btn of levelSelectGrid.querySelectorAll(".level-select-btn")) {
+    const n = parseInt(btn.getAttribute("data-level"), 10);
+    btn.disabled = n > maxLevelIndex;
+  }
+}
+
+function focusPreferredLevelButton() {
+  if (!levelSelectGrid) return;
+  const clamped = Math.min(6, Math.max(1, pendingStartLevelIndex));
+  let btn = levelSelectGrid.querySelector(`[data-level="${clamped}"]`);
+  if (!btn || btn.disabled) {
+    btn = levelSelectGrid.querySelector(".level-select-btn:not(:disabled)");
+  }
+  if (btn) btn.focus();
+}
+
+function hideLevelSelect() {
+  if (!levelSelectOverlay) return;
+  levelSelectOverlay.hidden = true;
+  levelSelectOverlay.setAttribute("aria-hidden", "true");
+}
+
+function openLevelSelectFromTitle() {
+  if (appScreen !== "title" || !levelSelectOverlay) return;
+  appScreen = "level_select";
+  syncLevelSelectButtons();
+  levelSelectOverlay.hidden = false;
+  levelSelectOverlay.setAttribute("aria-hidden", "false");
+  requestAnimationFrame(() => focusPreferredLevelButton());
+}
+
+function closeLevelSelectToTitle() {
+  hideLevelSelect();
+  appScreen = "title";
+}
+
+function onLevelChosen(levelIndex) {
+  selectedLevelForPlay = levelIndex;
+  pendingStartLevelIndex = levelIndex;
+  hideLevelSelect();
+  openTutorial();
+}
+
+function openTutorial() {
+  appScreen = "tutorial";
+  if (tutorialOverlay) {
+    tutorialOverlay.hidden = false;
+    tutorialOverlay.setAttribute("aria-hidden", "false");
+  }
+  requestAnimationFrame(() => tutorialContinueBtn?.focus());
+}
+
+function closeTutorial() {
+  if (!tutorialOverlay) return;
+  tutorialOverlay.hidden = true;
+  tutorialOverlay.setAttribute("aria-hidden", "true");
+}
+
+function backFromTutorialToLevelSelect() {
+  closeTutorial();
+  appScreen = "level_select";
+  if (levelSelectOverlay) {
+    levelSelectOverlay.hidden = false;
+    levelSelectOverlay.setAttribute("aria-hidden", "false");
+  }
+  syncLevelSelectButtons();
+  requestAnimationFrame(() => focusPreferredLevelButton());
+}
+
+let gameplayLoadInProgress = false;
+
+async function beginGameplayFromTutorial() {
+  if (appScreen !== "tutorial" || gameplayLoadInProgress) return;
+  gameplayLoadInProgress = true;
+  try {
+    await loadLevelFromIndex(selectedLevelForPlay);
+    closeTutorial();
+    appScreen = "gameplay";
+    if (controlsHintEl) controlsHintEl.hidden = false;
+  } catch (err) {
+    console.error(err);
+  } finally {
+    gameplayLoadInProgress = false;
+  }
+}
+
+if (levelSelectGrid) {
+  for (const btn of levelSelectGrid.querySelectorAll(".level-select-btn")) {
+    btn.addEventListener("click", () => {
+      if (btn.disabled || appScreen !== "level_select") return;
+      const n = parseInt(btn.getAttribute("data-level"), 10);
+      onLevelChosen(n);
+    });
+  }
+}
+
+tutorialContinueBtn?.addEventListener("click", () => {
+  beginGameplayFromTutorial();
+});
+
+canvas.addEventListener("click", () => {
+  if (appScreen === "title") openLevelSelectFromTitle();
+});
+
 const player = {
   x: PLAYER_START_X,
   y: floorY - drawH,
@@ -305,6 +472,8 @@ let sheet;
 let bgImg;
 /** Optional level foreground (transparent outside props); lantern affects this layer only. */
 let fgImg;
+let titleScreenImg;
+let startTextImg;
 let fgLayerCanvas;
 let fgLayerCtx;
 let beadsImg;
@@ -324,6 +493,8 @@ let levelPaperTotal = 0;
 let levelPaperAnswered = 0;
 /** `performance.now()` when the current level started; `null` until first `initializeLevel`. */
 let levelTimerStartMs = null;
+/** When set, HUD timer shows this value (seconds) instead of wall clock — e.g. level-complete overlay. */
+let levelTimerFrozenElapsedSec = null;
 /** Books picked up this level (inventory — not spent yet). */
 let booksHeld = 0;
 /** Total score (answers, beads, books, time bonus at exit); persists across levels. */
@@ -357,6 +528,11 @@ let solidRects = [];
 let oneWayPlatforms = [];
 let lastTs = 0;
 let collectibleAnimTime = 0;
+/** Flow: title → level select → tutorial → gameplay. */
+let appScreen = "title";
+let pendingStartLevelIndex = 1;
+/** Level chosen in the menu; loaded when the player confirms the tutorial. */
+let selectedLevelForPlay = 1;
 
 function loadImage(url) {
   return new Promise((resolve, reject) => {
@@ -463,12 +639,13 @@ function normalizeQuestions(data) {
   for (const q of raw) {
     if (!q || typeof q.prompt !== "string") continue;
     const hint = typeof q.hint === "string" ? q.hint.trim() : "";
+    const comment = typeof q.comment === "string" ? q.comment.trim() : "";
     if (q.type === "mcq" && Array.isArray(q.choices) && q.choices.length >= 2) {
       const ci = q.correctIndex;
       if (typeof ci !== "number" || ci < 0 || ci >= q.choices.length) continue;
-      out.push({ type: "mcq", prompt: q.prompt, choices: q.choices.slice(), correctIndex: ci, hint });
+      out.push({ type: "mcq", prompt: q.prompt, choices: q.choices.slice(), correctIndex: ci, hint, comment });
     } else if (q.type === "tf" && typeof q.answer === "boolean") {
-      out.push({ type: "tf", prompt: q.prompt, answer: q.answer, hint });
+      out.push({ type: "tf", prompt: q.prompt, answer: q.answer, hint, comment });
     }
   }
   return out;
@@ -716,6 +893,7 @@ function initializeLevel(levelData) {
   player.blinkCountdown = randBlinkDelay();
 
   levelTimerStartMs = performance.now();
+  levelTimerFrozenElapsedSec = null;
 }
 
 /** Golden angle in radians — successive indices land ~137° apart on the phase circle (strong desync). */
@@ -1313,6 +1491,31 @@ function syncQuestionKbdFocusFromButton(btn) {
   }
 }
 
+/**
+ * Nth paper answered this level is `paperOrdinal1Based` (1 = first pickup after prior answers).
+ * Levels 1–5: 1 → MCQ, 2 → T/F (same index as level − 1 in bank order).
+ * Level 6: MCQ, T/F, then MCQ — 13 unique questions total with the current bank.
+ */
+function getQuestionForLevelPaper(levelIndex, paperOrdinal1Based) {
+  const mcqs = questionsBank.filter((q) => q.type === "mcq");
+  const tfs = questionsBank.filter((q) => q.type === "tf");
+  const L = Math.max(1, Math.floor(levelIndex));
+  const p = Math.max(1, Math.floor(paperOrdinal1Based));
+
+  if (L >= 1 && L <= 5) {
+    if (p === 1) return mcqs[L - 1] ?? null;
+    if (p === 2) return tfs[L - 1] ?? null;
+    return null;
+  }
+  if (L === 6) {
+    if (p === 1) return mcqs[5] ?? null;
+    if (p === 2) return tfs[5] ?? null;
+    if (p === 3) return mcqs[6] ?? null;
+    return null;
+  }
+  return null;
+}
+
 function closeQuestionOverlay() {
   clearQuestionKbdFocus();
   questionOverlay.hidden = true;
@@ -1331,7 +1534,14 @@ function closeQuestionOverlay() {
 
 function showRandomQuestion() {
   if (questionsBank.length === 0) return;
-  const q = questionsBank[Math.floor(Math.random() * questionsBank.length)];
+  const paperOrdinal = levelPaperAnswered + 1;
+  let q = getQuestionForLevelPaper(currentLevelIndex, paperOrdinal);
+  if (!q) {
+    console.warn(
+      `No question mapped for level ${currentLevelIndex}, paper ${paperOrdinal}; using random pick.`,
+    );
+    q = questionsBank[Math.floor(Math.random() * questionsBank.length)];
+  }
   isQuestionOpen = true;
   questionTextEl.textContent = q.prompt;
   questionFeedbackEl.hidden = true;
@@ -1378,7 +1588,9 @@ function showRandomQuestion() {
     hudPulsePaperT = 0;
     if (correct) hudPulseScoreT = 0;
     questionFeedbackEl.hidden = false;
-    questionFeedbackEl.textContent = correct ? "إجابة صحيحة!" : "إجابة خاطئة.";
+    const baseFeedback = correct ? "إجابة صحيحة!" : "إجابة خاطئة.";
+    const commentStr = q.comment || "";
+    questionFeedbackEl.textContent = commentStr ? `${baseFeedback}\n${commentStr}` : baseFeedback;
     if (correct) questionFeedbackEl.classList.add("is-correct-msg");
     questionContinueBtn.hidden = false;
   };
@@ -1766,6 +1978,7 @@ function drawRightHud() {
 
 /** Elapsed seconds this level (float); for future time bonus scoring. */
 function getLevelElapsedSec() {
+  if (levelTimerFrozenElapsedSec != null) return levelTimerFrozenElapsedSec;
   if (levelTimerStartMs == null) return 0;
   return (performance.now() - levelTimerStartMs) / 1000;
 }
@@ -1840,15 +2053,16 @@ function fillLevelCompleteStats(container, snapshot, isFinal) {
   overall.textContent = `النقاط الإجمالية: ${snapshot.totalScore}`;
   container.appendChild(overall);
 
-  if (isFinal) {
-    const fin = document.createElement("p");
-    fin.className = "level-complete-stat-line";
-    fin.textContent = `أنهيتَ ${maxLevelIndex} مستوى — أحسنت!`;
-    container.appendChild(fin);
-  }
+  //if (isFinal) {
+    //const fin = document.createElement("p");
+    //fin.className = "level-complete-stat-line";
+    //fin.textContent = `أنهيتَ ${maxLevelIndex} مستوى — أحسنت!`;
+    //container.appendChild(fin);
+  //}
 }
 
 function openLevelCompleteScreen(isFinal, snapshot) {
+  levelTimerFrozenElapsedSec = snapshot.elapsedSec;
   isLevelCompleteScreenOpen = true;
   levelCompleteIsFinal = isFinal;
   if (isFinal) {
@@ -1865,19 +2079,30 @@ function openLevelCompleteScreen(isFinal, snapshot) {
   levelCompleteActionBtn.focus();
 }
 
-function restartGameFromWin() {
+function returnToTitleFromFinalWin() {
   score = 0;
   booksHeld = 0;
   questionsCollectedTotal = 0;
   questionsCorrectTotal = 0;
+  levelTimerFrozenElapsedSec = null;
   closeLevelCompleteScreen();
-  loadLevelFromIndex(1).catch((e) => console.warn("Restart load failed:", e));
+  hideLevelSelect();
+  closeTutorial();
+  if (controlsHintEl) controlsHintEl.hidden = true;
+  appScreen = "title";
+  pendingStartLevelIndex = 1;
+  selectedLevelForPlay = 1;
+  const url = new URL(window.location.href);
+  if (url.searchParams.has("level")) {
+    url.searchParams.delete("level");
+    history.replaceState(null, "", url);
+  }
 }
 
 levelCompleteActionBtn.addEventListener("click", async () => {
   if (!isLevelCompleteScreenOpen) return;
   if (levelCompleteIsFinal) {
-    restartGameFromWin();
+    returnToTitleFromFinalWin();
     return;
   }
   const next = currentLevelIndex + 1;
@@ -1923,6 +2148,26 @@ function frame(ts) {
 
   ctx.fillStyle = "#1a1b26";
   ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+
+  if (appScreen === "title" || appScreen === "level_select" || appScreen === "tutorial") {
+    if (titleScreenImg) {
+      ctx.drawImage(titleScreenImg, 0, 0, VIEW_W, VIEW_H);
+    }
+    if (appScreen === "title" && startTextImg) {
+      // Strong pulse: ~10% opacity at trough, full opacity at peak.
+      const pulse = 0.1 + 0.9 * (0.5 + 0.5 * Math.sin(ts * 0.0035));
+      const startW = Math.min(startTextImg.width, VIEW_W * 0.42);
+      const startH = startW * (startTextImg.height / Math.max(1, startTextImg.width));
+      const x = Math.round((VIEW_W - startW) * 0.5);
+      const y = Math.round(VIEW_H - startH - 44);
+      ctx.save();
+      ctx.globalAlpha = pulse;
+      ctx.drawImage(startTextImg, x, y, startW, startH);
+      ctx.restore();
+    }
+    requestAnimationFrame(frame);
+    return;
+  }
 
   if (!isQuestionOpen && !isLevelCompleteScreenOpen) {
     update(dt);
@@ -1976,6 +2221,14 @@ function frame(ts) {
 Promise.all([
   loadImage(SHEET_URL),
   loadQuestionsBank(QUESTIONS_URL),
+  loadImage(TITLE_SCREEN_URL).catch((e) => {
+    console.warn(e);
+    return null;
+  }),
+  loadImage(START_TEXT_URL).catch((e) => {
+    console.warn(e);
+    return null;
+  }),
   loadImage(COLLECT_BEADS_URL).catch((e) => {
     console.warn(e);
     return null;
@@ -2001,9 +2254,11 @@ Promise.all([
     return null;
   }),
 ])
-  .then(async ([sheetImg, qb, beads, book, paper, exitClosed, exitOpen, exterior]) => {
+  .then(async ([sheetImg, qb, titleImg, startImg, beads, book, paper, exitClosed, exitOpen, exterior]) => {
     sheet = sheetImg;
     questionsBank = qb;
+    titleScreenImg = titleImg;
+    startTextImg = startImg;
     beadsImg = beads;
     bookImg = book;
     paperImg = paper;
@@ -2013,15 +2268,17 @@ Promise.all([
 
     try {
       maxLevelIndex = await discoverMaxLevelIndex();
-      await loadLevelFromIndex(parseLevelFromQuery());
+      const fromQuery = parseLevelFromQuery();
+      pendingStartLevelIndex = Math.min(maxLevelIndex, Math.max(1, fromQuery));
+      selectedLevelForPlay = pendingStartLevelIndex;
     } catch (err) {
       console.error(err);
       ctx.fillStyle = "#f7768e";
       ctx.font = "16px system-ui";
-      ctx.fillText("Could not load level or assets.", 24, 40);
+      ctx.fillText("تعذّر تحميل المستوى أو الأصول.", 24, 40);
       ctx.fillText(String(err?.message ?? err), 24, 64);
-      ctx.fillText("Use ?level=1, ?level=2, … matching Assets/Levels/level_NN.json", 24, 88);
-      ctx.fillText("Open index.html via a local server if needed.", 24, 112);
+      ctx.fillText("استخدم ?level=1 أو ?level=2 مع Assets/Levels/level_NN.json", 24, 88);
+      ctx.fillText("افتح index.html عبر خادم محلي إن لزم الأمر.", 24, 112);
       return;
     }
 
@@ -2031,8 +2288,19 @@ Promise.all([
     console.error(err);
     ctx.fillStyle = "#f7768e";
     ctx.font = "16px system-ui";
-    ctx.fillText("Could not load sprite sheet.", 24, 40);
-    ctx.fillText("Open index.html via a local server if needed.", 24, 64);
+    ctx.fillText("تعذّر تحميل ملف الشخصيات.", 24, 40);
+    ctx.fillText("افتح index.html عبر خادم محلي إن لزم الأمر.", 24, 64);
   });
 
-window.goToLevel = (n) => loadLevelFromIndex(n);
+window.goToLevel = (n) => {
+  hideLevelSelect();
+  closeTutorial();
+  loadLevelFromIndex(n)
+    .then(() => {
+      appScreen = "gameplay";
+      selectedLevelForPlay = n;
+      pendingStartLevelIndex = n;
+      if (controlsHintEl) controlsHintEl.hidden = false;
+    })
+    .catch((e) => console.warn("goToLevel failed:", e));
+};
