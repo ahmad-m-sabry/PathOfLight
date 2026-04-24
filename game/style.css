@@ -142,6 +142,47 @@ body {
   max-width: min(96vw, 640px);
 }
 
+.menu-close-btn {
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 8px;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(21, 32, 48, 0.9);
+  color: #c0caf5;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  font-family: "Rooyin", "Segoe UI", Tahoma, sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.menu-close-btn__label {
+  display: inline-block;
+  transform: translate(1px, 2px);
+}
+
+.menu-close-btn:hover {
+  filter: brightness(1.2);
+}
+
+.menu-dialog-panel--fullscreen {
+  max-width: min(96vw, 560px);
+}
+
+.fullscreen-prompt-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
 .menu-dialog-body {
   margin: 0;
   padding: 20px 22px;

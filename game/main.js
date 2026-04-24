@@ -154,9 +154,14 @@ const levelCompleteStatsEl = document.getElementById("level-complete-stats");
 const levelCompleteActionBtn = document.getElementById("level-complete-action");
 const levelSelectOverlay = document.getElementById("level-select-overlay");
 const levelSelectGrid = document.getElementById("level-select-grid");
+const levelSelectCloseBtn = document.getElementById("level-select-close");
 const tutorialOverlay = document.getElementById("tutorial-overlay");
 const tutorialContinueBtn = document.getElementById("tutorial-continue");
+const tutorialCloseBtn = document.getElementById("tutorial-close");
 const controlsHintEl = document.getElementById("controls-hint");
+const fullscreenPromptOverlay = document.getElementById("fullscreen-prompt-overlay");
+const fullscreenPromptYesBtn = document.getElementById("fullscreen-prompt-yes");
+const fullscreenPromptNoBtn = document.getElementById("fullscreen-prompt-no");
 /** Wrapper used for touch: hold left/right edges to move, swipe up to jump. */
 const gameViewportEl = canvas.closest(".game-viewport");
 
@@ -228,6 +233,22 @@ function canonicalKbdCode(e) {
 }
 
 window.addEventListener("keydown", (e) => {
+  if (appScreen === "fullscreen_prompt") {
+    if ((e.code === "Enter" || e.code === "Space") && !e.repeat) {
+      e.preventDefault();
+      fullscreenPromptYesBtn?.click();
+      return;
+    }
+    if (e.code === "Escape") {
+      e.preventDefault();
+      fullscreenPromptNoBtn?.click();
+      return;
+    }
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Space"].includes(e.code)) {
+      e.preventDefault();
+    }
+    return;
+  }
   if (appScreen === "title") {
     if ((e.code === "Enter" || e.code === "Space") && !e.repeat) {
       e.preventDefault();
@@ -541,6 +562,47 @@ function hideLevelSelect() {
   levelSelectOverlay.setAttribute("aria-hidden", "true");
 }
 
+function hideFullscreenPrompt() {
+  if (!fullscreenPromptOverlay) return;
+  fullscreenPromptOverlay.hidden = true;
+  fullscreenPromptOverlay.setAttribute("aria-hidden", "true");
+}
+
+async function requestGameFullscreen() {
+  const root = document.documentElement;
+  if (document.fullscreenElement) return true;
+  try {
+    if (root.requestFullscreen) {
+      await root.requestFullscreen();
+      return true;
+    }
+    if (root.webkitRequestFullscreen) {
+      root.webkitRequestFullscreen();
+      return true;
+    }
+  } catch (e) {
+    console.warn("Fullscreen request failed:", e);
+  }
+  return false;
+}
+
+async function resolveFullscreenPrompt(shouldEnterFullscreen) {
+  if (appScreen !== "fullscreen_prompt") return;
+  if (shouldEnterFullscreen) {
+    await requestGameFullscreen();
+  }
+  hideFullscreenPrompt();
+  appScreen = "title";
+}
+
+fullscreenPromptYesBtn?.addEventListener("click", () => {
+  resolveFullscreenPrompt(true);
+});
+
+fullscreenPromptNoBtn?.addEventListener("click", () => {
+  resolveFullscreenPrompt(false);
+});
+
 function openLevelSelectFromTitle() {
   if (appScreen !== "title" || !levelSelectOverlay) return;
   appScreen = "level_select";
@@ -614,6 +676,16 @@ if (levelSelectGrid) {
     });
   }
 }
+
+levelSelectCloseBtn?.addEventListener("click", () => {
+  if (appScreen !== "level_select") return;
+  closeLevelSelectToTitle();
+});
+
+tutorialCloseBtn?.addEventListener("click", () => {
+  if (appScreen !== "tutorial") return;
+  backFromTutorialToLevelSelect();
+});
 
 tutorialContinueBtn?.addEventListener("click", () => {
   beginGameplayFromTutorial();
@@ -698,7 +770,7 @@ let oneWayPlatforms = [];
 let lastTs = 0;
 let collectibleAnimTime = 0;
 /** Flow: title → level select → tutorial → gameplay. */
-let appScreen = "title";
+let appScreen = "fullscreen_prompt";
 let pendingStartLevelIndex = 1;
 /** Level chosen in the menu; loaded when the player confirms the tutorial. */
 let selectedLevelForPlay = 1;
@@ -2322,7 +2394,12 @@ function frame(ts) {
   ctx.fillStyle = "#1a1b26";
   ctx.fillRect(0, 0, VIEW_W, VIEW_H);
 
-  if (appScreen === "title" || appScreen === "level_select" || appScreen === "tutorial") {
+  if (
+    appScreen === "fullscreen_prompt" ||
+    appScreen === "title" ||
+    appScreen === "level_select" ||
+    appScreen === "tutorial"
+  ) {
     if (titleScreenImg) {
       ctx.drawImage(titleScreenImg, 0, 0, VIEW_W, VIEW_H);
     }

@@ -18,6 +18,7 @@
           aria-modal="true"
           aria-labelledby="level-select-title"
         >
+          <button type="button" id="level-select-close" class="menu-close-btn" aria-label="رجوع"><span class="menu-close-btn__label">X</span></button>
           <div class="menu-dialog-body menu-dialog-body--level-select">
             <h2 style="margin-top: -40px; margin-bottom: 60px;" id="level-select-title" class="menu-dialog-title menu-dialog-title--top">اختر المستوى</h2>
             <div id="level-select-grid" class="level-select-grid">
@@ -39,6 +40,7 @@
           aria-modal="true"
           aria-labelledby="tutorial-title"
         >
+          <button type="button" id="tutorial-close" class="menu-close-btn" aria-label="رجوع"><span class="menu-close-btn__label">X</span></button>
           <div class="menu-dialog-body menu-dialog-body--tutorial">
             <h2 style="margin-bottom: 60px; margin-top: -40px;" id="tutorial-title" class="menu-dialog-title menu-dialog-title--top">كيف تلعب</h2>
             <ul class="tutorial-list">
@@ -82,6 +84,24 @@
               ابدأ المستوى
             </button>
             <p style="margin-top: 40px; margin-bottom: -60px;" class="menu-dialog-hint menu-dialog-hint--footer">اضغط  - Esc -  لاختيار مستوى آخر</p>
+          </div>
+        </div>
+      </div>
+      <div
+        id="fullscreen-prompt-overlay"
+        class="menu-overlay"
+        aria-hidden="false"
+        lang="ar"
+        dir="rtl"
+      >
+        <div class="question-panel menu-dialog-panel menu-dialog-panel--fullscreen" role="dialog" aria-modal="true" aria-labelledby="fullscreen-prompt-title">
+          <div class="menu-dialog-body">
+            <h2 id="fullscreen-prompt-title" class="menu-dialog-title">هل تريد تشغيل اللعبة بملء الشاشة؟</h2>
+            <p class="menu-dialog-hint">هذا يساعد على تجربة أفضل على الهاتف.</p>
+            <div class="fullscreen-prompt-actions">
+              <button type="button" id="fullscreen-prompt-yes" class="question-continue menu-primary-btn">نعم</button>
+              <button type="button" id="fullscreen-prompt-no" class="question-continue menu-primary-btn">لاحقًا</button>
+            </div>
           </div>
         </div>
       </div>
