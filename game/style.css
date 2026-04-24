@@ -440,6 +440,58 @@ body {
   background: transparent;
 }
 
+@media (max-width: 900px), (max-height: 700px) {
+  .question-panel {
+    transform: scale(0.86);
+    transform-origin: center center;
+  }
+
+  .question-overlay,
+  .level-complete-overlay,
+  .menu-overlay {
+    padding: 10px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .question-panel {
+    transform: scale(0.74);
+  }
+
+  .menu-dialog-body {
+    padding: 10px 12px;
+  }
+
+  .menu-dialog-title {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+  }
+
+  .menu-dialog-body--level-select .menu-dialog-title {
+    margin-top: 0 !important;
+    margin-bottom: 12px !important;
+    font-size: 1.2rem;
+  }
+
+  .menu-dialog-body--tutorial .menu-dialog-title {
+    margin-top: 0 !important;
+    margin-bottom: 12px !important;
+    font-size: 1.2rem;
+  }
+
+  .menu-dialog-hint--footer {
+    margin-top: 8px !important;
+    margin-bottom: 0 !important;
+    padding-top: 6px;
+  }
+
+  .menu-dialog-body--tutorial .tutorial-list {
+    font-size: 0.95rem;
+    line-height: 1.45;
+    margin-bottom: 10px;
+  }
+}
+
 .question-text {
   margin: 0 0 32px;
   /* Keep lines clear of the corner hint button (panel is RTL; book uses inset-inline-end). */
